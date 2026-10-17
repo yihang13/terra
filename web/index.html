@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#02050b" />
+  <meta name="description" content="TERRA — 实时 3D 全景地球。由 Rust、WebAssembly 与 WebGL2 驱动。" />
+  <title>TERRA — 3D 全景地球</title>
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="preload" href="./assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="./assets/fonts/cormorant-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
+</head>
+<body>
+  <canvas id="globe" aria-label="Interactive 3D Earth. Drag to orbit, scroll to zoom."></canvas>
+
+  <div class="space-scrim" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="brand" aria-label="Terra Planetary Observatory">
+      <span class="brand-mark" aria-hidden="true">
+        <i></i>
+      </span>
+      <span class="brand-copy">
+        <strong>TERRA</strong>
+        <small>PLANETARY OBSERVATORY</small>
+      </span>
+    </div>
+
+    <div class="header-meta">
+      <span class="live"><i></i>REAL-TIME RENDER</span>
+      <span class="meta-rule" aria-hidden="true"></span>
+      <span class="clock-block">
+        <strong id="utc-clock">--:--:-- UTC</strong>
+        <small id="utc-date">—</small>
+      </span>
+    </div>
+  </header>
+
+  <main class="hero-copy">
+    <div class="eyebrow"><span>03</span> ORBITAL PERSPECTIVE</div>
+    <h1>The blue planet,<br /><em>in motion.</em></h1>
+    <p class="cn-title">实时 3D 全景地球</p>
+    <p class="lede">拖动旋转星球，滚动缩放。云层、海洋高光与夜晚城市灯火，在同一个实时着色器中呼吸。</p>
+    <div class="copy-rule" aria-hidden="true"><i></i><span>RUST · WASM · WEBGL2</span></div>
+  </main>
+
+  <aside class="telemetry" aria-label="Orbital telemetry">
+    <div class="telemetry-head">
+      <span>ORBITAL TELEMETRY</span>
+      <span class="telem-index">01</span>
+    </div>
+    <div class="datum">
+      <span>LATITUDE</span>
+      <strong id="hud-lat">--.-° N</strong>
+    </div>
+    <div class="datum">
+      <span>LONGITUDE</span>
+      <strong id="hud-lon">--.-° E</strong>
+    </div>
+    <div class="datum">
+      <span>ALTITUDE</span>
+      <strong id="hud-alt">--,--- KM</strong>
+    </div>
+    <div class="datum">
+      <span>PHASE</span>
+      <strong id="hud-phase">DAYLIGHT</strong>
+    </div>
+    <div class="telemetry-foot">
+      <span class="pulse-dot"></span>
+      <span><b id="hud-fps">60</b> FPS</span>
+      <span class="telemetry-line" aria-hidden="true"></span>
+    </div>
+  </aside>
+
+  <footer class="footer">
+    <p class="credit">IMAGERY NASA VISIBLE EARTH · THREE.JS CLOUDS<br />RENDERED IN RUST / WEBASSEMBLY</p>
+
+    <div class="control-wrap">
+      <div class="mobile-readout" aria-hidden="true">
+        <span id="m-lat">--.-° N</span><i></i>
+        <span id="m-lon">--.-° E</span><i></i>
+        <span id="m-alt">--,--- KM</span>
+      </div>
+      <p class="gesture-hint">拖动旋转 · 滚轮缩放 · 空格暂停自转</p>
+      <div class="controls" role="toolbar" aria-label="Globe controls">
+        <button class="control is-active" type="button" data-action="spin" data-tip="AUTO ORBIT" aria-pressed="true" aria-label="Toggle auto orbit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 8.1A8.5 8.5 0 1 0 20.8 14"/><path d="M20.8 3.8v4.7h-4.7"/></svg>
+        </button>
+        <button class="control is-active" type="button" data-action="clouds" data-tip="CLOUD LAYER" aria-pressed="true" aria-label="Toggle clouds">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.7 18.5h11.1a3.4 3.4 0 0 0 .4-6.8 5.1 5.1 0 0 0-9.8-1.2 4 4 0 0 0-1.7 8Z"/></svg>
+        </button>
+        <button class="control is-active" type="button" data-action="night" data-tip="CITY LIGHTS" aria-pressed="true" aria-label="Toggle city lights">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8a8.5 8.5 0 1 0 11.3 11.3Z"/><path d="M17.2 3.8v2.1M16.2 4.8h2.1"/></svg>
+        </button>
+        <span class="control-divider" aria-hidden="true"></span>
+        <button class="control" type="button" data-action="reset" data-tip="RESET VIEW" aria-label="Reset view">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.2"/><path d="M12 2.2v3.1M12 18.7v3.1M2.2 12h3.1M18.7 12h3.1"/></svg>
+        </button>
+        <button class="control" type="button" data-action="fullscreen" data-tip="FULLSCREEN" aria-label="Toggle fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <p class="edition">EDITION<br /><b>MMXXVI</b></p>
+  </footer>
+
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <div class="loader-hairline" aria-hidden="true"></div>
+    <div class="loader-inner">
+      <div class="loader-orbit" aria-hidden="true">
+        <span class="loader-planet"></span>
+        <span class="loader-satellite"></span>
+      </div>
+      <div class="loader-brand">TERRA</div>
+      <p class="loader-sub">3D PLANETARY OBSERVATORY</p>
+      <div class="loader-track"><i id="loader-bar"></i></div>
+      <div class="loader-readout">
+        <span id="loader-label">ESTABLISHING ORBITAL LINK</span>
+        <span id="loader-percent">000%</span>
+      </div>
+    </div>
+    <p class="loader-foot">RUST / WASM / WEBGL2</p>
+  </div>
+
+  <div class="error-panel" id="error" hidden>
+    <div class="error-inner">
+      <span class="error-kicker">SIGNAL LOST / 503</span>
+      <h2>Unable to render the planet.</h2>
+      <p id="error-detail">WebGL2 is not available in this browser.</p>
+      <p class="error-tip">Try a recent version of Chrome, Edge, Firefox or Safari with hardware acceleration enabled.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import init from "./pkg/terra.js";
+
+    init().catch((error) => {
+      console.error(error);
+      const panel = document.getElementById("error");
+      const detail = document.getElementById("error-detail");
+      const loader = document.getElementById("loader");
+      if (detail) detail.textContent = String(error);
+      if (panel) panel.hidden = false;
+      if (loader) loader.classList.add("is-hidden");
+    });
+  </script>
+</body>
+</html>
